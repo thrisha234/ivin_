@@ -186,9 +186,12 @@ def compute_embedding_from_file(audio_bytes):
 # -----------------------------
 # AUDIO UTILITIES
 # -----------------------------
-def convert_to_wav(input_path):
-    audio = AudioSegment.from_file(input_path)
-    wav_path = input_path.rsplit(".", 1)[0] + ".wav"
+from pydub import AudioSegment
+
+def convert_to_wav(file_path):
+    audio = AudioSegment.from_file(file_path)
+    audio = audio.set_channels(1).set_frame_rate(16000)
+    wav_path = file_path.rsplit(".", 1)[0] + ".wav"
     audio.export(wav_path, format="wav")
     return wav_path
 
@@ -211,20 +214,13 @@ def extract_actions_from_text(text):
 # PDF & DOCX generators
 # -----------------------------
 
-
-
-from docx import Document
-from docx.shared import Pt
-import os
-
 def generate_minutes_word(meeting_id, subject, summary, attendees, absentees, actions):
-    doc_dir = "static/minutes"
+    doc_dir = os.path.join(BASE_DIR, "static", "minutes")
     os.makedirs(doc_dir, exist_ok=True)
     doc_path = os.path.join(doc_dir, f"meeting_{meeting_id}.docx")
 
     doc = Document()
     doc.add_heading("IVIN - Meeting Minutes", 0)
-    
     doc.add_paragraph(f"Meeting Subject: {subject}")
     doc.add_paragraph(f"Meeting Date: {datetime.now().strftime('%Y-%m-%d')}")
     doc.add_paragraph(f"Meeting Time: {datetime.now().strftime('%H:%M IST')}")
@@ -268,9 +264,6 @@ def generate_minutes_word(meeting_id, subject, summary, attendees, absentees, ac
 
     doc.save(doc_path)
     return doc_path
-
-
-
 
 # -----------------------------
 # MULTI-SPEAKER IDENTIFICATION
@@ -468,7 +461,7 @@ def delete_speaker():
 @app.route("/upload_meeting", methods=["POST", "GET"])
 def upload_meeting():
     if request.method == "POST":
-        title = request.form.get("title", "Direction GuideBot - Client Update")
+        title = request.form.get("title", "Meeting")
         file = request.files.get("audio")
 
         if not file:
@@ -481,52 +474,44 @@ def upload_meeting():
 
         wav = convert_to_wav(path)
 
-        # ----------------------------
-        # WHISPER TRANSCRIPTION
-        # ----------------------------
+        # Transcribe using Whisper
         whisper_model = get_whisper_model()
         result = whisper_model.transcribe(wav)
         transcript_text = result.get("text", "")
 
-        # ----------------------------
-        # CALL OPENAI TO GENERATE FORMATTED MINUTES
-        # ----------------------------
-        openai.api_key = os.environ.get("OPENAI_API_KEY")
+        # GPT Mini Summarization
         meeting_date, meeting_time = current_indian_time()
-
         prompt = f"""
-        You are an assistant that generates professional meeting minutes.
-        Take the transcript below and generate a readable output in this format:
+You are an assistant that generates professional meeting minutes.
+Take the transcript below and generate a readable output in this exact format:
 
-        IVIN - Meeting Minutes
+IVIN - Meeting Minutes
 
-        Meeting Subject: {title}
-        Meeting Date: {meeting_date}
-        Meeting Time: {meeting_time}
+Meeting Subject: {title}
+Meeting Date: {meeting_date}
+Meeting Time: {meeting_time}
 
-        Attendees:
-        (List all attendees automatically from transcript if possible)
+Attendees:
+- List all attendees found in the transcript, if unknown write 'Not Provided'
 
-        Meeting Summary:
-        - Summarize key discussion points clearly in bullet points
+Meeting Summary:
+- Write key points as bullet points (one point per line)
 
-        Action Items:
-        No. | Person | Task | Deadline
-        (Generate tasks with owner and deadline based on transcript)
+Action Items:
+No. | Owner | Task | Deadline
+- Include all tasks mentioned in the transcript.
+- If owner or deadline is missing, write placeholders: [Name of responsible] or [Specific Deadline Date]
 
-        Transcript:
-        {transcript_text}
-        """
-
+Transcript:
+{transcript_text}
+"""
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
         )
         output_text = response.choices[0].message.content
 
-        # ----------------------------
-        # PARSE GPT OUTPUT FOR WORD
-        # ----------------------------
+        # ---------------- Parse GPT Output ----------------
         def parse_gpt_minutes(output_text):
             lines = output_text.splitlines()
             summary_lines = []
@@ -537,39 +522,46 @@ def upload_meeting():
 
             for line in lines:
                 line = line.strip()
-                if line.startswith("Attendees:"):
+                if "Attendees" in line:
                     in_attendees = True
                     in_summary = in_actions = False
                     continue
-                elif line.startswith("Meeting Summary"):
+                elif "Meeting Summary" in line:
                     in_summary = True
                     in_attendees = in_actions = False
                     continue
-                elif line.startswith("Action Items"):
+                elif "Action Items" in line:
                     in_actions = True
                     in_summary = in_attendees = False
                     continue
 
-                if in_attendees and line:
-                    attendees.append(line.strip(", "))
+                if in_attendees and line and line != "-":
+                    attendees.append(line.strip("- ").strip())
                 elif in_summary and line:
                     summary_lines.append(line.strip("- ").strip())
                 elif in_actions and line and "|" in line:
                     parts = [p.strip() for p in line.split("|")]
                     if len(parts) == 4:
+                        owner = parts[1] if parts[1] and "responsible" not in parts[1] else "[Name of responsible]"
+                        deadline = parts[3] if parts[3] and parts[3] not in ["Today", "By Friday"] else "[Specific Deadline Date]"
                         actions.append({
-                            "task": parts[2],
-                            "owner": parts[1],
-                            "deadline": parts[3]
+                            "task": parts[2] if parts[2] else "No task",
+                            "owner": owner,
+                            "deadline": deadline
                         })
+
+            if not attendees:
+                attendees = ["Not Provided"]
+            if not summary_lines:
+                summary_lines = ["No summary generated."]
+            if not actions:
+                actions = [{"task": "No action items found", "owner": "N/A", "deadline": "N/A"}]
 
             return attendees, "\n".join(summary_lines), actions
 
         attendees_list, summary_text, actions_list = parse_gpt_minutes(output_text)
 
-        # ----------------------------
-        # SAVE TO DATABASE
-        # ----------------------------
+        # ---------------- Save to DB ----------------
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute("""
@@ -579,9 +571,7 @@ def upload_meeting():
         meeting_id = c.lastrowid
         conn.commit()
 
-        # ----------------------------
-        # GENERATE WORD DOCUMENT ONLY
-        # ----------------------------
+        # ---------------- Generate Word ----------------
         word_path = generate_minutes_word(
             meeting_id=meeting_id,
             subject=title,
@@ -591,26 +581,23 @@ def upload_meeting():
             actions=actions_list
         )
 
-        # ----------------------------
-        # UPDATE DB with Word path
-        # ----------------------------
-        c.execute("""
-            UPDATE meetings
-            SET docx_path = ?
-            WHERE id = ?
-        """, (word_path, meeting_id))
+        # Update DB with Word path
+        c.execute("UPDATE meetings SET docx_path=? WHERE id=?", (word_path, meeting_id))
         conn.commit()
         conn.close()
 
+        flash("✅ Meeting minutes generated successfully!")
         return render_template(
             "meeting_processed.html",
             title=title,
             transcript=transcript_text,
             word_path=word_path,
-            meeting_id=meeting_id
+            meeting_id=meeting_id  # <-- ensures download link works
         )
 
     return render_template("upload_meeting.html")
+
+
 
 
 def transcript_to_line_paragraph(labeled_transcript):

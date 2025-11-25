@@ -160,7 +160,7 @@
       {% endif %}
 
       <p>
-        <a class="btn" href="/download_minutes_docx/{{ meeting_id }}">Download DOCX Minutes</a>
+        <a class="btn" href="{{ url_for('download_minutes_docx', meeting_id=meeting_id) }}">Download DOCX Minutes</a>
       </p>
 
       
