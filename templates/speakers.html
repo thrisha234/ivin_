@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Speaker Mapping</title>
+  <link rel='stylesheet' href='/static/style.css'>
+</head>
+<body>
+<div class="container">
+  <h1>Speaker Mapping for Meeting {{ meeting_id }}</h1>
+
+  {% if speakers %}
+    <ul>
+      {% for sp in speakers %}
+        <li>{{ sp }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No speaker mapping found.</p>
+  {% endif %}
+
+  <a class="btn" href="/">Back to Home</a>
+</div>
+</body>
+</html>

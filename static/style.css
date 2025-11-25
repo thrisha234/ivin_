@@ -1,0 +1,109 @@
+body {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    background: #f7faff;
+    color: #1a1a1a;
+}
+
+/* Header */
+.app-header {
+    background: #1973b8;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ffffff;
+}
+
+.brand-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.brand-logo {
+    width: 42px;
+    height: 42px;
+    margin-right: 12px;
+    border-radius: 6px;
+}
+
+.brand-title {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* Navigation */
+.top-nav a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    font-weight: 500;
+}
+
+.top-nav a:hover {
+    text-decoration: underline;
+}
+
+/* Hero */
+.hero {
+    text-align: center;
+    margin: 80px auto;
+    max-width: 650px;
+}
+
+.hero h1 {
+    font-size: 36px;
+    color: #1973b8;
+    font-weight: 700;
+}
+
+.hero p {
+    font-size: 18px;
+    margin: 14px 0 24px;
+    color: #444;
+}
+
+/* CTA Button */
+.cta-btn {
+    background: #4ea749;
+    border: none;
+    padding: 14px 28px;
+    font-size: 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #fff;
+    transition: 0.2s ease;
+}
+
+.cta-btn:hover {
+    transform: scale(1.06);
+    background: #3f8e3b;
+}
+
+/* Footer */
+.app-footer {
+    text-align: center;
+    padding: 18px;
+    font-size: 14px;
+    background: #e8f2ff;
+    color: #555;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}
+
+/* Recording Indicator */
+.record-blink {
+    width: 14px;
+    height: 14px;
+    background: red;
+    border-radius: 50%;
+    display: inline-block;
+    animation: blink 0.9s infinite;
+    margin-right: 8px;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.2; }
+}

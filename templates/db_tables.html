@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Database Tables</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 50%;
+            margin: 40px auto;
+            font-family: Arial;
+        }
+        th, td {
+            border: 1px solid #444;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #1973b8;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h2 style="text-align:center;">Database Tables</h2>
+    <table>
+        <tr><th>Table Name</th></tr>
+        {% for table in tables %}
+        <tr><td>{{ table }}</td></tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

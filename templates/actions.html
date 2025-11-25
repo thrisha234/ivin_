@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Action Items</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ---------- Root & Colors ---------- */
+    :root {
+      --primary: #1973b8;
+      --accent: #4ea749;
+      --bg: radial-gradient(circle at top, #0d111b, #000);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-blur: 15px;
+      --radius: 15px;
+      --shadow: 0 8px 30px rgba(0,0,0,0.3);
+      --text-light: #f0f4f8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text-light);
+      overflow-x: hidden;
+    }
+
+    /* Neon Orbs */
+    .neon-orb {
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      filter: blur(120px);
+      animation: float 10s infinite alternate ease-in-out;
+      z-index: -1;
+    }
+    #orb1 { background: #1973b8; top: 8%; left: 5%; }
+    #orb2 { background: #4ea749; top: 55%; right: 10%; animation-delay: 2s; }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-60px); }
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1100px;
+      margin: 80px auto;
+      padding: 40px 50px;
+      border-radius: var(--radius);
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    h1 {
+      font-size: 28px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      color: transparent;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      color: var(--text-light);
+    }
+
+    th, td {
+      padding: 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    th {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: #000;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    button.cta-btn {
+      padding: 6px 12px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.25s;
+    }
+    button.cta-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 14px var(--accent);
+    }
+
+    a.home-link {
+      display: inline-block;
+      margin-top: 20px;
+      text-decoration: none;
+      font-weight: 600;
+      color: var(--accent);
+      transition: 0.2s;
+    }
+    a.home-link:hover {
+      text-shadow: 0 0 10px var(--accent);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Neon Orbs -->
+  <div id="orb1" class="neon-orb"></div>
+  <div id="orb2" class="neon-orb"></div>
+
+  <div class="container">
+    <h1>📌 Action Items</h1>
+    <p style="text-align:left;"><a class="home-link" href="/" style="color:#0affb9; text-decoration:none;">🏠 Home</a></p>
+
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Description</th>
+        <th>Raised In</th>
+        <th>Responsible</th>
+        <th>Due Date</th>
+        <th>Challenges</th>
+        <th>Status</th>
+        <th>Created At</th>
+        <th>Action</th>
+      </tr>
+      {% for a in actions %}
+      <tr>
+        <td>{{ a[0] }}</td>
+        <td>{{ a[1] }}</td>
+        <td><a href="/meeting/{{ a[3] }}">{{ a[2] }}</a></td>
+        <td>{{ a[6] or '' }}</td>
+        <td>{{ a[7] or '' }}</td>
+        <td>{{ a[8] or '' }}</td>
+        <td>{{ a[4] }}</td>
+        <td>{{ a[5] }}</td>
+        <td>
+          {% if a[4] == 'OPEN' %}
+          <form method="post" action="/close_action/{{ a[0] }}">
+            <button type="submit" class="cta-btn">Close</button>
+          </form>
+          {% else %}
+          ✅ Closed
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    <p><a class="home-link" href="/">🏠 Home</a></p>
+  </div>
+</body>
+</html>

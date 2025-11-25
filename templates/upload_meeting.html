@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>AI Meeting Recorder — Neon Dashboard</title>
+<link rel="stylesheet" href="/static/style.css">
+
+<!-- WaveSurfer -->
+<script src="https://unpkg.com/wavesurfer.js"></script>
+
+<style>
+/* ---------- Global Blue–Green Neon Glass Theme ---------- */
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: radial-gradient(circle at top, #0d111b, #000);
+  color: white;
+  overflow-x: hidden;
+}
+.neon-orb { position: absolute; width: 420px; height: 420px; border-radius: 50%; filter: blur(120px); animation: float 10s infinite alternate ease-in-out; z-index: -1; }
+#orb1 { background: #1973b8; top: 8%; left: 5%; }
+#orb2 { background: #4ea749; top: 55%; right: 10%; animation-delay: 2s; }
+@keyframes float { 0% { transform: translateY(0px); } 100% { transform: translateY(-60px); } }
+.container { width: 900px; margin: 80px auto; padding: 20px 30px; text-align: center; background: rgba(255,255,255,0.06); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; box-shadow: 0 0 25px rgba(0,255,255,0.15); }
+.cta-btn, button { background: linear-gradient(90deg, #1973b8, #4ea749); border: none; padding: 14px 26px; border-radius: 10px; font-weight: 700; cursor: pointer; color: #000; font-size: 17px; transition: 0.25s; margin: 10px; }
+.cta-btn:hover, button:hover { transform: scale(1.08); box-shadow: 0 0 14px #4ea749; }
+input { width: 65%; padding: 10px; border-radius: 8px; outline: none; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.15); color: white; }
+input::placeholder { color: #cfcfcf; }
+#waveform { margin-top: 15px; border-radius: 10px; height: 100px; }
+footer { text-align: center; font-size: 14px; padding: 25px; opacity: 0.7; margin-top: 20px; }
+.timeline { text-align:left; margin-top:15px; max-height:200px; overflow-y:auto; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; }
+.timeline li { margin-bottom:6px; }
+</style>
+
+</head>
+<body>
+
+<div class="neon-orb" id="orb1"></div>
+<div class="neon-orb" id="orb2"></div>
+
+<div class="container">
+<p style="text-align:left;">
+  <a class="home-link" href="/" style="color:#0affb9; text-decoration:none;">🏠 Home</a>
+</p>
+
+<h1 style="margin-bottom:20px;">
+    <img src="/static/img/pragnaware_logo.jpg" alt="Pragnaware Logo"
+         style="height:40px; vertical-align:middle; margin-right:10px;">
+    AI Meeting Recorder Dashboard
+</h1>
+
+<p style="opacity:0.85;">Record · Upload · Visualize · Identify · Summarize</p><br>
+
+<!-- Title Input -->
+<input id="meetingTitle" placeholder="Enter Meeting Title"><br><br>
+
+<!-- Recording UI -->
+<button id="startBtn">🎙️ Start Recording</button>
+<button id="stopBtn" disabled>⏹️ Stop</button>
+
+<p id="status"></p>
+
+
+
+<!-- Waveform Container -->
+<div id="waveform"></div>
+<audio id="playback" controls></audio>
+
+<!-- Timeline for multi-chunk speaker -->
+<ul class="timeline" id="speakerTimeline"></ul>
+
+<form id="uploadRecordedForm" method="post" enctype="multipart/form-data"
+      style="display:none;margin-top:15px;">
+    <input type="hidden" name="title" id="titleField">
+    <input type="file" name="audio" id="audioFileField" style="display:none;">
+    <button type="submit">⚡ Process Recording</button>
+</form>
+
+<hr style="margin:30px 0;">
+
+<h3>Upload Existing File</h3>
+
+<form id="uploadExistingForm" method="post" enctype="multipart/form-data">
+    <input name="title" placeholder="Meeting title">
+    <input id="existingFileInput" type="file" name="audio" accept="audio/*"><br><br>
+    <button type="submit">📤 Process Uploaded File</button>
+</form>
+
+</div>
+
+<script>
+let mediaRecorder, audioChunks = [];
+let wavesurfer;
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+const status = document.getElementById("status");
+const playback = document.getElementById("playback");
+const meetingTitle = document.getElementById("meetingTitle");
+const uploadRecordedForm = document.getElementById("uploadRecordedForm");
+const titleField = document.getElementById("titleField");
+const audioFileField = document.getElementById("audioFileField");
+const speakerNameEl = document.getElementById("speakerName");
+const existingFileInput = document.getElementById("existingFileInput");
+const timelineEl = document.getElementById("speakerTimeline");
+
+
+
+
+// ---------------- START RECORDING ----------------
+startBtn.onclick = async () => {
+  audioChunks = [];
+  timelineEl.innerHTML = "";
+  status.innerText = "🔴 Recording...";
+  startBtn.disabled = true;
+  stopBtn.disabled = false;
+
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  mediaRecorder = new MediaRecorder(stream);
+
+  mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+
+  mediaRecorder.onstop = async () => {
+    status.innerText = "⏳ Finalizing recording...";
+    const blob = new Blob(audioChunks, { type: "audio/webm" });
+    playback.src = URL.createObjectURL(blob);
+
+    // Initialize WaveSurfer waveform
+    wavesurfer = WaveSurfer.create({
+      container: "#waveform",
+      waveColor: "#1973b8",
+      progressColor: "#4ea749",
+      barWidth: 2,
+      height: 80
+    });
+    wavesurfer.load(playback.src);
+
+    // Prepare form for server upload
+    const file = new File([blob], "recording.webm", { type: "audio/webm" });
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    audioFileField.files = dt.files;
+
+    titleField.value = meetingTitle.value || "Recorded Meeting";
+    uploadRecordedForm.style.display = "block";
+
+    // Auto speaker identification
+    await identifyFile(file);
+
+    status.innerText = "✔ Recorded — Ready to Process";
+  };
+
+  mediaRecorder.start();
+};
+
+// ---------------- STOP RECORDING ----------------
+stopBtn.onclick = () => {
+  if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    mediaRecorder.stop();
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+    status.innerText = "⏳ Stopping recording...";
+  }
+};
+
+// ---------------- SUBMIT FORM ----------------
+uploadRecordedForm.onsubmit = () => { status.innerText = "⏳ Processing on server..."; };
+
+</script>
+
+</body>
+</html>

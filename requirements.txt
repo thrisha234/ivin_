@@ -1,0 +1,9 @@
+flask
+sqlalchemy
+pydub
+python-dotenv
+openai-whisper
+speechbrain
+scikit-learn
+reportlab
+python-docx

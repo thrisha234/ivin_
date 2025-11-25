@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Action Items</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f7f7f7; }
+    .container { background: white; padding: 25px; border-radius: 8px; max-width: 1100px; margin: auto; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background: #007bff; color: white; }
+    tr:hover { background: #f1f1f1; }
+    button { padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #1d7c32; }
+    a { text-decoration: none; color: #007bff; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Action Items</h1>
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>Description</th>
+      <th>Raised In</th>
+      <th>Responsible</th>
+      <th>Due Date</th>
+      <th>Challenges</th>
+      <th>Status</th>
+      <th>Created At</th>
+      <th>Action</th>
+    </tr>
+    {% for a in actions %}
+    <tr>
+      <td>{{ a[0] }}</td>
+      <td>{{ a[1] }}</td>
+      <td><a href="/meeting/{{ a[3] }}">{{ a[2] }}</a></td>
+      <td>{{ a[6] or '' }}</td>
+      <td>{{ a[7] or '' }}</td>
+      <td>{{ a[8] or '' }}</td>
+      <td>{{ a[4] }}</td>
+      <td>{{ a[5] }}</td>
+      <td>
+        {% if a[4] == 'OPEN' %}
+        <form method="post" action="/close_action/{{ a[0] }}">
+          <button type="submit">Close</button>
+        </form>
+        {% else %}
+        ✅ Closed
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p><a href="/">Home</a></p>
+</div>
+</body>
+</html>

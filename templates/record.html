@@ -1,0 +1,197 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>IVIN MOM — Start Recording</title>
+
+<!-- WaveSurfer -->
+<script src="https://unpkg.com/wavesurfer.js"></script>
+
+<style>
+/* ---------- Global Theme ---------- */
+body {
+  margin:0;
+  font-family: "Inter", sans-serif;
+  background: radial-gradient(circle at top, #0e1220, #000);
+  color:white;
+  overflow-x:hidden;
+}
+
+/* ---------- Neon Blue–Green Floating Lights ---------- */
+.neon-orb {
+  position:absolute;
+  width:400px;
+  height:400px;
+  border-radius:50%;
+  filter: blur(120px);
+  animation: float 12s infinite alternate ease-in-out;
+  z-index:-1;
+}
+#orb1{ background:#1973b8; top:10%; left:5%; }
+#orb2{ background:#4ea749; top:50%; right:10%; animation-delay:2s; }
+
+@keyframes float {
+  0%{ transform:translateY(0px) rotate(0deg); }
+  100%{ transform:translateY(-60px) rotate(20deg); }
+}
+
+/* ---------- Glass Panel ---------- */
+.container {
+  width:900px;
+  margin:80px auto;
+  background:rgba(255,255,255,0.05);
+  backdrop-filter: blur(12px);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:18px;
+  padding:35px 45px;
+  box-shadow: 0 0 25px rgba(25,115,184,0.25);
+  text-align:center;
+}
+
+/* Headings */
+h1 {
+  font-size:32px;
+  background: linear-gradient(90deg, #1973b8, #4ea749);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* ---------- Inputs ---------- */
+input {
+  width:65%;
+  padding:12px;
+  border-radius:8px;
+  outline:none;
+  border:1px solid rgba(255,255,255,0.25);
+  background:rgba(255,255,255,0.15);
+  color:white;
+  font-size:16px;
+}
+input::placeholder{ color:#e0e0e0; }
+
+/* ---------- Buttons ---------- */
+button {
+  background:linear-gradient(90deg, #1973b8, #4ea749);
+  border:none;
+  color:#000;
+  padding:12px 24px;
+  cursor:pointer;
+  border-radius:10px;
+  font-weight:700;
+  font-size:16px;
+  transition:0.2s;
+}
+button:hover {
+  transform:scale(1.07);
+  box-shadow:0 0 18px #4ea749;
+}
+
+/* ---------- Waveform ---------- */
+#waveform {
+  margin-top:20px;
+  border-radius:10px;
+  height:100px;
+  background:rgba(255,255,255,0.05);
+}
+</style>
+
+</head>
+<body>
+
+<div class="neon-orb" id="orb1"></div>
+<div class="neon-orb" id="orb2"></div>
+
+<div class="container">
+
+  <h1>🎙 Start Recording</h1>
+  <p style="opacity:0.85; margin-bottom:25px;">
+      Capture audio instantly with real-time AI transcription.
+  </p>
+
+  <!-- Title Input -->
+  <input id="meetingTitle" placeholder="Enter Meeting Title">
+  <br><br>
+
+  <!-- Recording Buttons -->
+  <button id="startBtn">🎙 Start Recording</button>
+  <button id="stopBtn" disabled>⏹ Stop</button>
+
+  <p id="status" style="margin-top:10px;"></p>
+
+  <!-- Waveform -->
+  <div id="waveform"></div>
+
+  <!-- Playback -->
+  <audio id="playback" controls style="width:100%; margin-top:10px;"></audio>
+
+  <!-- Hidden Upload Form (now correctly posting to /upload) -->
+  <form id="uploadRecordedForm"
+        method="post"
+        action="/upload"
+        enctype="multipart/form-data"
+        style="display:none;margin-top:15px;">
+      
+    <input type="hidden" name="title" id="titleField">
+    <input type="file" name="audio" id="audioFileField" style="display:none;">
+    <button type="submit">⚡ Process Recording</button>
+  </form>
+
+</div>
+
+<script>
+let mediaRecorder, audioChunks = [];
+let wavesurfer;
+
+/* ------- START RECORDING ------- */
+startBtn.onclick = async () => {
+  audioChunks = [];
+  const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+
+  mediaRecorder = new MediaRecorder(stream);
+
+  mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(audioChunks, { type:"audio/webm" });
+    playback.src = URL.createObjectURL(blob);
+
+    /* Waveform */
+    wavesurfer = WaveSurfer.create({
+      container: "#waveform",
+      waveColor: "#1973b8",
+      progressColor: "#4ea749",
+      barWidth: 2,
+      height: 80
+    });
+    wavesurfer.load(playback.src);
+
+    /* Attach audio to backend form */
+    const file = new File([blob], "recording.webm", { type:"audio/webm" });
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('audioFileField').files = dt.files;
+
+    document.getElementById('titleField').value =
+        meetingTitle.value || "Recorded Meeting";
+
+    uploadRecordedForm.style.display="block";
+    status.innerText = "✔ Recorded — Ready to Process";
+  };
+
+  mediaRecorder.start();
+  startBtn.disabled = true;
+  stopBtn.disabled = false;
+  status.innerText = "🔴 Recording...";
+};
+
+/* ------- STOP RECORDING ------- */
+stopBtn.onclick = () => {
+  mediaRecorder.stop();
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
+  status.innerText = "⏳ Finalizing...";
+};
+</script>
+
+</body>
+</html>

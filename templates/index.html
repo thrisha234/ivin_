@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<title>IVIN MOM | Let Your Meetings Work for You</title>
+
+<link rel="stylesheet" href="/static/style.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<style>
+/* ---------- Global Blue–Green Neon Glass Theme ---------- */
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: radial-gradient(circle at top, #0d111b, #000);
+  color: white;
+  overflow-x: hidden;
+}
+
+/* Header */
+.app-header {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  padding: 14px 26px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.brand-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  margin-right: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.brand-title {
+  font-size: 21px;
+  font-weight: 600;
+  background: linear-gradient(90deg, #fff);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Top Nav */
+.top-nav a {
+  color: white;
+  margin-left: 25px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.top-nav a:hover {
+  text-shadow: 0 0 10px #1973b8;
+}
+
+/* Neon Glowing Orbs */
+.neon-orb {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  filter: blur(120px);
+  animation: float 10s infinite alternate ease-in-out;
+  z-index: -1;
+}
+
+#orb1 { background: #1973b8; top: 8%; left: 5%; }
+#orb2 { background: #4ea749; top: 55%; right: 10%; animation-delay: 2s; }
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-60px); }
+}
+
+/* Main Container */
+.container {
+  width: 900px;
+  margin: 80px auto;
+  padding: -1px 20px;
+  text-align: center;
+}
+
+/* Buttons */
+.cta-btn {
+  background: linear-gradient(90deg, #1973b8, #4ea749);
+  border: none;
+  padding: 14px 26px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #000;
+  font-size: 17px;
+  transition: 0.25s;
+  margin: 10px;
+}
+
+.cta-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 14px #4ea749;
+}
+
+/* Features */
+.feature-box {
+  margin: 25px auto;       /* center the box horizontally */
+  font-size: 18px;
+  line-height: 1.8;
+  opacity: 0.9;
+  text-align: left;        /* text left-aligned inside the box */
+  max-width: 600px;        /* optional: limit width for better appearance */
+}
+
+/* Optional: style the "Coming Soon" text */
+.feature-box i {
+  font-style: italic;      /* ensure italic */
+  color: #cfcfcf;          /* slightly muted color */
+  display: inline;         /* keep it on the same line */
+  margin-top: 0;           /* no extra spacing */
+  font-size: 14px;         /* smaller font size */
+}
+
+
+
+
+/* Footer */
+footer {
+  text-align: center;
+  font-size: 14px;
+  padding: 25px;
+  opacity: 0.7;
+  margin-top: 20px;
+}
+</style>
+
+</head>
+
+
+<body>
+
+<header class="app-header">
+    <div class="brand-wrapper">
+        <img src="static\img\pragnaware_logo.jpg" alt="Logo" class="brand-logo">
+        <span class="brand-title">IVIN MOM — Meeting Intelligence</span>
+    </div>
+
+    <nav class="top-nav">
+        <a href="/"><i class="fa fa-home"></i> Home</a>
+    </nav>
+</header>
+
+<div class="neon-orb" id="orb1"></div>
+<div class="neon-orb" id="orb2"></div>
+
+
+<!-- ---------- HERO SECTION ---------- -->
+<!-- ---------- HERO SECTION ---------- -->
+<div class="container">
+
+    <h1 style="font-size:40px; margin-bottom:12px;">
+        IVIN MOM – Let Your Meetings Work for You
+    </h1>
+
+    <h2 style="font-size:26px; margin-bottom:18px;">
+        🗣️ Turn Your Conversations into Clear, Actionable Minutes in Minutes.
+    </h2>
+
+    <p style="font-size:18px; opacity:0.85; margin-bottom:35px;">
+        No more scrambling to take notes — speak naturally and let IVIN MOM turn it into 
+        structured minutes with key decisions and action points.
+    </p>
+
+    <div class="feature-box">
+        🗂️ <b>Track action items easily</b><br>
+        🎙️ <b>AI-powered speech-to-text</b><br>
+        🧠 <b>Automated meeting minutes</b><br>
+        
+    🔤 <b>Custom dictionary for your organization <i>(coming soon)</i></b>
+
+    </div>
+
+    <br><br>
+
+    <!-- Buttons -->
+    <a href="/upload_meeting"><button class="cta-btn">📂 Upload / Live Recorder</button></a>
+
+</div>
+
+
+<footer>
+    © 2025 Pragnaware Solutions | Powered by Whisper + Google Cloud AI
+</footer>
+
+</body>
+</html>
