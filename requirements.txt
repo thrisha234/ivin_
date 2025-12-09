@@ -1,9 +1,25 @@
-flask
-sqlalchemy
+Flask>=2.0
+Flask-Login>=0.6
+Flask-SocketIO>=5.2.0
+eventlet>=0.33.0
+
+# Core AI / Audio
+torch
+torchaudio
+numpy
 pydub
-python-dotenv
-openai-whisper
 speechbrain
-scikit-learn
-reportlab
+silero-vad
+
+# Whisper (stable pip build)
+openai-whisper
+
+# File exports
 python-docx
+reportlab
+
+# OpenAI client
+openai
+
+# Server
+werkzeug
